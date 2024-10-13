@@ -68,6 +68,11 @@ class US_NCAP(Task):
         self.base_risk = base_risk
         self.noise_level = noise_level
 
+        self.prior_params = {
+            "low": torch.tensor(self.prior_lower_bound),
+            "high": torch.tensor(self.prior_upper_bound),
+        }
+
         self.prior_dist = Uniform(
             low=torch.tensor(self.prior_lower_bound),
             high=torch.tensor(self.prior_upper_bound),
@@ -80,6 +85,20 @@ class US_NCAP(Task):
             return self.prior_dist.sample((num_samples,))
 
         return prior
+    
+    def get_labels_data(self) -> list[str]:
+        """Get labels for the data dimensions."""
+        return ["Relative Risk"]
+    
+    def get_labels_parameters(self) -> list[str]:
+        """Get labels for the parameter dimensions."""
+        return [
+            "HIC",
+            "Chest Deflection",
+            "Femur Load",
+            "NIJ",
+            "Neck Compression",
+            "Neck Tension"]
 
     def get_simulator(self, max_calls: int = None) -> Simulator:
         """Get function returning samples from the simulator given parameters.
