@@ -2,6 +2,7 @@ import torch
 
 from pathlib import Path
 from torch.distributions import Uniform
+from typing import List
 
 from sbibm.tasks.simulator import Simulator
 from sbibm.tasks.task import Task
@@ -24,10 +25,10 @@ class US_NCAP(Task):
         num_observations: int = 10,
         num_posterior_samples: int = 10_000,
         num_reference_posterior_samples: int = 10_000,
-        num_simulations: list[int] = [100, 1_000, 10_000, 100_000, 1_000_000],
+        num_simulations: List[int] = [100, 1_000, 10_000, 100_000, 1_000_000],
         path: str = Path(__file__).parent.absolute(),
-        prior_lower_bound: list[float] = [200, 5, 2, 0.0, 1.5, 1.0],
-        prior_upper_bound: list[float] = [800, 42.5, 8.0, 0.75, 4.0, 4.0],
+        prior_lower_bound: List[float] = [200, 5, 2, 0.0, 1.5, 1.0],
+        prior_upper_bound: List[float] = [800, 42.5, 8.0, 0.75, 4.0, 4.0],
         base_risk: float = 0.15,
         noise_level: float = 0.1,
     ) -> None:
@@ -86,11 +87,11 @@ class US_NCAP(Task):
 
         return prior
     
-    def get_labels_data(self) -> list[str]:
+    def get_labels_data(self) -> List[str]:
         """Get labels for the data dimensions."""
         return ["Relative Risk"]
     
-    def get_labels_parameters(self) -> list[str]:
+    def get_labels_parameters(self) -> List[str]:
         """Get labels for the parameter dimensions."""
         return [
             "HIC",
@@ -99,6 +100,10 @@ class US_NCAP(Task):
             "NIJ",
             "Neck Compression",
             "Neck Tension"]
+    
+    def get_observation(self, num_observation: int) -> torch.Tensor:
+        """Get observation for a given index."""
+        raise NotImplementedError("This task does not provide observations yet.")
 
     def get_simulator(self, max_calls: int = None) -> Simulator:
         """Get function returning samples from the simulator given parameters.

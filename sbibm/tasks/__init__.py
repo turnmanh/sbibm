@@ -63,6 +63,11 @@ def get_task(task_name: str, *args: Any, **kwargs: Any) -> Task:
 
         return TwoMoons(*args, **kwargs)
 
+    elif task_name == "us_ncap":
+        from sbibm.tasks.us_ncap.task import US_NCAP
+
+        return US_NCAP(*args, **kwargs)
+
     else:
         raise NotImplementedError()
 
