@@ -127,24 +127,24 @@ class US_NCAP(Task):
             """
 
             # evaluate single probabilities according to provided parameters
-            p_hic = p_hic(parameters[:, 0].reshape(-1, 1))
-            p_chest = p_chest(parameters[:, 1].reshape(-1, 1))
-            p_femur = p_femur(parameters[:, 2].reshape(-1, 1))
-            p_nij = p_nij(parameters[:, 3].reshape(-1, 1))
-            p_compression = p_compression(parameters[:, 4].reshape(-1, 1))
-            p_tension = p_tension(parameters[:, 5].reshape(-1, 1))
+            phic = p_hic(parameters[:, 0].reshape(-1, 1))
+            pchest = p_chest(parameters[:, 1].reshape(-1, 1))
+            pfemur = p_femur(parameters[:, 2].reshape(-1, 1))
+            pnij = p_nij(parameters[:, 3].reshape(-1, 1))
+            pcompression = p_compression(parameters[:, 4].reshape(-1, 1))
+            ptension = p_tension(parameters[:, 5].reshape(-1, 1))
 
             # transform the neck injury probability
-            p_neck, _ = torch.max(
-                torch.stack([p_nij, p_compression, p_tension], dim=0),
+            pneck, _ = torch.max(
+                torch.stack([pnij, pcompression, ptension], dim=0),
                 dim=0,
             )
 
-            joint_prob_inj = 1 - (1 - p_hic) * (1 - p_chest) * (1 - p_femur) * (
-                1 - p_neck
+            joint_prob_inj = 1 - (1 - phic) * (1 - pchest) * (1 - pfemur) * (
+                1 - pneck
             )
 
-            risk_values = 1 - joint_prob_inj / self.base_risk
+            risk_values = joint_prob_inj / self.base_risk
 
             # Generating and adding Gaussian white noise to relative risk.
             noise = torch.randn_like(risk_values) * self.noise_level
