@@ -73,8 +73,8 @@ class US_NCAP(Task):
         measurements on relevant body parts to provide an overall safety
         assessment of a car.
 
-        This simulator provides the assessment from a from crash with full
-        overlap at 56 km/h.
+        This simulator provides the assessment using measurments from all crash 
+        scenarios included in the US NCAP at 56 km/h.
 
         Args:
             dim_data: Dimensionality of observations.
@@ -204,6 +204,6 @@ class US_NCAP(Task):
             noise = torch.randn_like(risk_values) * self.noise_level
             risk_values += noise
 
-            return risk_values  # .reshape(-1, 1)
+            return risk_values 
 
         return Simulator(task=self, simulator=simulator, max_calls=max_calls)
