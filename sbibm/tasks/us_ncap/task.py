@@ -141,8 +141,6 @@ class US_NCAP(Task):
             "Full Frontal Passanger Neck Compression",
             "Full Frontal Passanger Neck Tension",
             "Side Pole Front HIC",
-            "Side Pole Front Chest (Rib)",
-            "Side Pole Front Abdomen",
             "Side Pole Front Pelvis",
             "Side Impact Front HIC",
             "Side Impact Front Chest (Rib)",
@@ -183,7 +181,7 @@ class US_NCAP(Task):
             """
             assert (
                 parameters.shape[1] == self.dim_parameters
-            ), f"Invalid number of parameters. Got {parameters.shape[1]}, expected 23."
+            ), f"Invalid number of parameters. Got {parameters.shape[1]}, expected {self.dim_parameters}."
 
             # Extracting parameters
             measurements_full_frontal = parameters[:, :12]
