@@ -1,7 +1,7 @@
 import torch
 
 from pathlib import Path
-from torch.distributions import Uniform
+from sbi.utils.torchutils import BoxUniform as Uniform
 from typing import List
 
 from sbibm.tasks.simulator import Simulator
