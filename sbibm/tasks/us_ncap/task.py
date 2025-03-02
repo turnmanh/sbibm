@@ -155,7 +155,7 @@ class US_NCAP(Task):
         """Get observation for a given index."""
         raise NotImplementedError("This task does not provide observations yet.")
 
-    def get_coarse_simulator(self, max_calls: int = None) -> Simulator:
+    def get_simulator(self, max_calls: int = None) -> Simulator:
         """Get function returning samples from the simulator given parameters.
 
         This simulator models the overall risk of injury for a car in a crash
