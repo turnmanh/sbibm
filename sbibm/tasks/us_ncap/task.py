@@ -73,7 +73,7 @@ class US_NCAP(Task):
         measurements on relevant body parts to provide an overall safety
         assessment of a car.
 
-        This simulator provides the assessment using measurments from all crash 
+        This simulator provides the assessment using measurments from all crash
         scenarios included in the US NCAP at 56 km/h.
 
         Args:
@@ -155,8 +155,13 @@ class US_NCAP(Task):
         """Get observation for a given index."""
         raise NotImplementedError("This task does not provide observations yet.")
 
-    def get_simulator(self, max_calls: int = None) -> Simulator:
+    def get_coarse_simulator(self, max_calls: int = None) -> Simulator:
         """Get function returning samples from the simulator given parameters.
+
+        This simulator models the overall risk of injury for a car in a crash
+        scenario. In this case the dimensions of the simulator are 21 to 1,
+        which can be challenging density estimation. If that's the case, use the
+        fine simulator instead.
 
         Args:
             max_calls: Maximum number of calls to the simulator. Additional
@@ -202,6 +207,79 @@ class US_NCAP(Task):
             noise = torch.randn_like(risk_values) * self.noise_level
             risk_values += noise
 
-            return risk_values 
+            return risk_values
+
+        return Simulator(task=self, simulator=simulator, max_calls=max_calls)
+
+    def get_fine_simulator(self, max_calls: int = None) -> Simulator:
+        """Get function returning samples from the FINE simulator given parameters.
+
+        The orignal simulator models a problem with dimensions 21 to 1. 
+
+        While the orginal simulator returns only the overall risk, this simulator
+        returns the risk for each of the three crash scenarios (full frontal,
+        side impact, and roll over) as well as the overall risk. This is useful
+        to study the density estimation method's ability to improve having more
+        information at hand.
+
+        Args:
+            max_calls: Maximum number of calls to the simulator. Additional
+            calls result in the a SimulationBudgetExceeded exception.
+
+        Returns:
+            Simulator callable.
+        """
+        # The data dim. is 4 for the fine simulator. This is needed when reshaping the data.
+        # We've got the three dimensions of the crash tests and the overall risk.
+        self.dim_data = 4
+
+        full_frontal_crash = FullFrontalCrash(base_risk=self.base_risk)
+        side_impact_crash = SideImpact(base_risk=self.base_risk)
+        roll_over = RollOver(base_risk=self.base_risk)
+
+        def simulator(parameters: torch.Tensor) -> torch.Tensor:
+            """Simulates the US NCAP rating for a full frontal crash test.
+
+            Args:
+                parameters: Crash test measurements of shape (N, 23).
+
+            Returns:
+                torch.tensor: Relative risk of injury.
+            """
+            assert (
+                parameters.shape[1] == self.dim_parameters
+            ), f"Invalid number of parameters. Got {parameters.shape[1]}, expected {self.dim_parameters}."
+
+            # Extracting parameters
+            measurements_full_frontal = parameters[:, :12]
+            measurements_side_impact = parameters[:, 12:20]
+            measurements_roll_over = parameters[:, 20:]
+
+            risk_full_frontal = full_frontal_crash(measurements_full_frontal)
+            risk_side_impact = side_impact_crash(measurements_side_impact)
+            risk_roll_over = roll_over(measurements_roll_over)
+
+            risk_values = (
+                (5 / 12) * risk_full_frontal
+                + (4 / 12) * risk_side_impact
+                + (3 / 12) * risk_roll_over
+            )
+
+            # Generating and adding Gaussian white noise to relative risk.
+            for risk in [risk_full_frontal, risk_side_impact, risk_roll_over]:
+                noise = torch.randn_like(risk) * self.noise_level
+                risk += noise
+
+            risk = torch.cat(
+                [risk_full_frontal, risk_side_impact, risk_roll_over, risk_values],
+                dim=1,
+            )
+
+            assert risk.shape == (
+                parameters.shape[0],
+                self.dim_data,
+            ), "Invalid shape of risk tensor. Expected (N, 3)."
+
+            return risk
 
         return Simulator(task=self, simulator=simulator, max_calls=max_calls)
